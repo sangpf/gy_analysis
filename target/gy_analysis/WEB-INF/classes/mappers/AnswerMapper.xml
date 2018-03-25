@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.xdc.dao.AnswerDao">
+
+	<resultMap type="Answer" id="answerMap">
+		<result column="id" property="id"/>
+		<result column="userId" property="userId"/>
+		<result column="qId" property="qId"/>
+		<result column="oderId" property="oderId"/>
+		<result column="matrixId" property="matrixId"/>
+		<result column="invId" property="invId"/>
+		<result column="qType" property="qType"/>
+		<result column="choices" property="choices"/>
+		<result column="resUrl" property="resUrl"/>
+		<result column="ansDescription" property="ansDescription"/>
+		<result column="comment" property="comment"/>
+	</resultMap>
+
+	<sql id="selector">
+		select *
+		from gy_answer
+	</sql>
+
+	<!-- 查询条件 -->
+	<sql id="where">
+		<where>
+			<if test="id != null">
+				and id = #{id}
+			</if>
+			<if test="userId != null">
+				<if test="userIdLike == false">
+					and userId = #{userId}
+				</if>
+				<if test="userIdLike == true">
+					and userId like "%"#{userId}"%"
+				</if>
+			</if>
+			<if test="qId != null">
+				<if test="qIdLike == false">
+					and qId = #{qId}
+				</if>
+				<if test="qIdLike == true">
+					and qId like "%"#{qId}"%"
+				</if>
+			</if>
+			<if test="oderId != null">
+				<if test="oderIdLike == false">
+					and oderId = #{oderId}
+				</if>
+				<if test="oderIdLike == true">
+					and oderId like "%"#{oderId}"%"
+				</if>
+			</if>
+			<if test="matrixId != null">
+				<if test="matrixIdLike == false">
+					and matrixId = #{matrixId}
+				</if>
+				<if test="matrixIdLike == true">
+					and matrixId like "%"#{matrixId}"%"
+				</if>
+			</if>
+			<if test="invId != null">
+				<if test="invIdLike == false">
+					and invId = #{invId}
+				</if>
+				<if test="invIdLike == true">
+					and invId like "%"#{invId}"%"
+				</if>
+			</if>
+			<if test="qType != null">
+				<if test="qTypeLike == false">
+					and qType = #{qType}
+				</if>
+				<if test="qTypeLike == true">
+					and qType like "%"#{qType}"%"
+				</if>
+			</if>
+			<if test="choices != null">
+				<if test="choicesLike == false">
+					and choices = #{choices}
+				</if>
+				<if test="choicesLike == true">
+					and choices like "%"#{choices}"%"
+				</if>
+			</if>
+			<if test="resUrl != null">
+				<if test="resUrlLike == false">
+					and resUrl = #{resUrl}
+				</if>
+				<if test="resUrlLike == true">
+					and resUrl like "%"#{resUrl}"%"
+				</if>
+			</if>
+			<if test="ansDescription != null">
+				<if test="ansDescriptionLike == false">
+					and ansDescription = #{ansDescription}
+				</if>
+				<if test="ansDescriptionLike == true">
+					and ansDescription like "%"#{ansDescription}"%"
+				</if>
+			</if>
+			<if test="comment != null">
+				<if test="commentLike == false">
+					and comment = #{comment}
+				</if>
+				<if test="commentLike == true">
+					and comment like "%"#{comment}"%"
+				</if>
+			</if>
+		</where>
+	</sql>
+
+	<!-- Order by -->
+	<sql id="orderBy">
+	</sql>
+
+	<!-- 查询集合 -->
+	<select id="getAnswerList" parameterType="AnswerQuery" resultMap="answerMap">
+		<include refid="selector"/>
+		<include refid="where"/>
+		<include refid="orderBy"/>
+	</select>
+
+	<!-- 添加 -->
+	<insert id="addAnswer" parameterType="Answer">
+		insert into gy_answer
+		<trim prefix="(" suffix=")">
+				userId,
+				qId,
+				oderId,
+				matrixId,
+				invId,
+				qType,
+				choices,
+				resUrl,
+				ansDescription,
+				comment
+		</trim>
+		values
+		<trim prefix="(" suffix=")">
+				#{userId},
+				#{qId},
+				#{oderId},
+				#{matrixId},
+				#{invId},
+				#{qType},
+				#{choices},
+				#{resUrl},
+				#{ansDescription},
+				#{comment}
+		</trim>
+	</insert>
+
+	<!-- 删除 通过主键 -->
+	<delete id="deleteAnswerByKey" parameterType="Integer">
+		delete from gy_answer
+		<where>
+			id = #{id}
+		</where>
+	</delete>
+
+	<!-- 批量删除 -->
+	<delete id="deleteAnswerByKeys" parameterType="Integer">
+		delete from gy_answer
+		<where>
+			id in
+			<foreach collection="array" item="id" open="(" close=")" separator="," >
+				#{id}
+			</foreach>
+		</where>
+	</delete>
+
+	<!-- 修改 -->
+	<update id="updateAnswerByKey" parameterType="Answer">
+		update gy_answer
+		<set>
+			<if test="userId != null">
+				userId = #{userId},
+			</if>
+			<if test="qId != null">
+				qId = #{qId},
+			</if>
+			<if test="oderId != null">
+				oderId = #{oderId},
+			</if>
+			<if test="matrixId != null">
+				matrixId = #{matrixId},
+			</if>
+			<if test="invId != null">
+				invId = #{invId},
+			</if>
+			<if test="qType != null">
+				qType = #{qType},
+			</if>
+			<if test="choices != null">
+				choices = #{choices},
+			</if>
+			<if test="resUrl != null">
+				resUrl = #{resUrl},
+			</if>
+			<if test="ansDescription != null">
+				ansDescription = #{ansDescription},
+			</if>
+			<if test="comment != null">
+				comment = #{comment},
+			</if>
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+
+	<!-- 通过ID查询一个品牌对象 -->
+	<select id="getAnswerByKey" parameterType="Integer" resultMap="answerMap">
+		select *
+		from gy_answer
+		<where>
+			id = #{id}
+		</where>
+	</select>
+
+</mapper>
+

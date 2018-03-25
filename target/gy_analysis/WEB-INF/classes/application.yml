@@ -1,0 +1,17 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+   url: jdbc:mysql://101.200.166.221:3306/guoyan?characterEncoding=UTF-8
+   username: developer
+   password: xindongchadb
+   driver-class-name: com.mysql.jdbc.Driver
+
+mybatis:
+  # mybatis.config= classpath:mybatis-config.xml
+  mapperLocations: classpath:mappers/*.xml
+  # domain object's package
+  typeAliasesPackage: cn.xdc.bean
+
+
