@@ -9,7 +9,7 @@ import java.util.List;
  * @author sang
  *
  */
-public class InvestigationQuery {
+public class InvestigationQuery extends BaseQuery{
 
 	private Integer invId;
 	private Integer projectId;
@@ -139,6 +139,7 @@ public class InvestigationQuery {
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
+
 
 	/***********查询字段指定*************************************/
 	private String fields;

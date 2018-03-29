@@ -3,24 +3,6 @@
 
 <mapper namespace="cn.xdc.dao.InvestigationDao">
 
-	<resultMap type="InvestigationVo" id="investigationMap">
-		<result column="invId" property="invId"/>
-		<result column="projectId" property="projectId"/>
-		<result column="invName" property="invName"/>
-		<result column="invType" property="invType"/>
-		<result column="cTime" property="cTime"/>
-		<result column="sTime" property="sTime"/>
-		<result column="bTime" property="bTime"/>
-		<result column="eTime" property="eTime"/>
-		<result column="invStatus" property="invStatus"/>
-		<result column="totalNum" property="totalNum"/>
-		<result column="isRecord" property="isRecord"/>
-		<result column="invSummary" property="invSummary"/>
-		<result column="editor" property="editor"/>
-		<result column="groupLeaderId" property="groupLeaderId"/>
-		<result column="comment" property="comment"/>
-	</resultMap>
-
 	<sql id="selector">
 		select *
 		from gy_investigation
@@ -136,6 +118,14 @@
 					and groupLeaderId like "%"#{groupLeaderId}"%"
 				</if>
 			</if>
+			<if test="missionStatement != null">
+				<if test="missionStatementLike == false">
+					and missionStatement = #{missionStatement}
+				</if>
+				<if test="missionStatementLike == true">
+					and missionStatement like "%"#{missionStatement}"%"
+				</if>
+			</if>
 			<if test="comment != null">
 				<if test="commentLike == false">
 					and comment = #{comment}
@@ -152,14 +142,36 @@
 	</sql>
 
 	<!-- 查询集合 -->
-	<select id="getInvestigationList" parameterType="InvestigationQuery" resultMap="investigationMap">
+	<select id="getInvestigationList" parameterType="InvestigationQuery" resultType="InvestigationVo">
 		<include refid="selector"/>
 		<include refid="where"/>
 		<include refid="orderBy"/>
 	</select>
 
+	<!-- 分页 -->
+	<select id="getInvestigationListWithPage" parameterType="InvestigationQuery" resultType="InvestigationVo">
+		<include refid="selector" />
+		<include refid="where" />
+		<include refid="limit" />
+	</select>
+
+	<sql id="limit">
+		<if test="startRow != null">
+			limit #{startRow},#{pageSize}
+		</if>
+	</sql>
+
+	<!-- 数据总数 -->
+	<select id="getInvestigationListCount" parameterType="InvestigationQuery" resultType="int">
+		SELECT count(1) FROM gy_investigation
+		<include refid="where"/>
+	</select>
+
 	<!-- 添加 -->
 	<insert id="addInvestigation" parameterType="Investigation">
+		<selectKey keyProperty="invId" order="AFTER" resultType="java.lang.Integer">
+			select LAST_INSERT_ID()
+		</selectKey>
 		insert into gy_investigation
 		<trim prefix="(" suffix=")">
 				projectId,
@@ -175,6 +187,7 @@
 				invSummary,
 				editor,
 				groupLeaderId,
+				missionStatement,
 				comment
 		</trim>
 		values
@@ -192,6 +205,7 @@
 				#{invSummary},
 				#{editor},
 				#{groupLeaderId},
+				#{missionStatement},
 				#{comment}
 		</trim>
 	</insert>
@@ -258,6 +272,9 @@
 			<if test="groupLeaderId != null">
 				groupLeaderId = #{groupLeaderId},
 			</if>
+			<if test="missionStatement != null">
+				missionStatement = #{missionStatement},
+			</if>
 			<if test="comment != null">
 				comment = #{comment},
 			</if>
@@ -267,8 +284,8 @@
 		</where>
 	</update>
 
-	<!-- 通过ID查询一个 -->
-	<select id="getInvestigationByKey" parameterType="Integer" resultMap="investigationMap">
+	<!-- 通过ID查询一个品牌对象 -->
+	<select id="getInvestigationByKey" parameterType="Integer" resultType="InvestigationVo">
 		select *
 		from gy_investigation
 		<where>

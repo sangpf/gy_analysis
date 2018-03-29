@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.0
+Built-By: sang
+Implementation-Vendor-Id: cn.xdc
+Created-By: IntelliJ IDEA
+Build-Jdk: 1.7.0_51
+Main-Class: cn.xdc.Application
+

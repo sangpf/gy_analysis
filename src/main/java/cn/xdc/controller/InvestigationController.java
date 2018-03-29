@@ -1,20 +1,17 @@
 package cn.xdc.controller;
 
-import cn.xdc.bean.Answer;
-import cn.xdc.bean.InvOrder;
-import cn.xdc.bean.Investigation;
-import cn.xdc.bean.User;
+import cn.xdc.bean.*;
 import cn.xdc.bean.query.AnswerQuery;
 import cn.xdc.bean.query.InvOrderQuery;
 import cn.xdc.bean.query.InvestigationQuery;
 import cn.xdc.bean.vo.InvestigationVo;
 import cn.xdc.bean.vo.StatisticsDetailVo;
 import cn.xdc.bean.vo.UserInfo_InvVo;
-import cn.xdc.service.AnswerService;
-import cn.xdc.service.InvOrderService;
-import cn.xdc.service.InvestigationService;
-import cn.xdc.service.UserService;
+import cn.xdc.common.page.Pagination;
+import cn.xdc.service.*;
 import cn.xdc.utils.*;
+import cn.xdc.utils.file.localZip.ZipUtils;
+import cn.xdc.utils.file.zip.DownZipUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -24,10 +21,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.zip.ZipOutputStream;
+
+import org.apache.log4j.Logger;
 
 /**
  * 数据查询 -- 调查
@@ -35,6 +38,8 @@ import java.util.*;
 @RequestMapping(value = "/investigation")
 @Controller
 public class InvestigationController {
+    private static Logger log = Logger.getLogger(Object.class);
+
     @Autowired
     private InvestigationService investigationService;
     @Autowired
@@ -43,6 +48,8 @@ public class InvestigationController {
     private InvOrderService invOrderService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private QuestionService questionService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder, WebRequest request) {
@@ -52,96 +59,191 @@ public class InvestigationController {
         binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
     }
 
+    //===================================统计明细=== begin====================================
+    // 下载统计明细查询 excel
+    @RequestMapping(value = "/download_list_statistics_detail.do")
+    public void download_list_statistics_detail(Integer invId,HttpServletRequest request,
+                                                      HttpServletResponse response){
+        if (invId != null){
+            try {
+                DownZipUtils.downLoadZip(response,request,invId);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else {
+            System.out.println("===================>> 要下载的调查id为null");
+        }
+    }
+
+    @RequestMapping(value = "/download_list_statistics_detail_excel.do")
+    public void download_list_statistics_detail_excel(Integer invId,HttpServletResponse response){
+
+        if (invId != null){
+            List<InvestigationVo> investigations = package_list_statistics_detail(invId);
+
+            LinkedHashMap<String, String> fieldMap = new LinkedHashMap<String, String>();
+            fieldMap.put("inv_userName", "调查员姓名");
+            fieldMap.put("inv_userGender", "调查员性别");
+            fieldMap.put("collectionSchedule", "采集完成度");
+
+            try {
+                ExcelExportUtil.listToExcel(investigations,fieldMap,"invid_"+invId,response);
+            } catch (ExcelException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     // 统计明细查询
     @ResponseBody
     @RequestMapping(value = "/list_statistics_detail.do")
     public AjaxResult list_statistics_detail(Integer invId){
+        if(invId == null){
+            return AjaxResult.errorResult("缺少参数 invId");
+        }
+        List<InvestigationVo> investigations = package_list_statistics_detail(invId);
+
+        return AjaxResult.successData(investigations);
+    }
+
+    // 统计明细查询
+    private List<InvestigationVo> package_list_statistics_detail(Integer invId) {
         AnswerQuery answerQuery = new AnswerQuery();
         answerQuery.setInvId(invId);
-        //查询 answer表 , 准备原始数据
-        List<Answer> answerList = answerService.getAnswerList(answerQuery);
+        //查询 answer表 , 准备原始数据  所有用户的答案信息
+        List<Answer> allUser_answerList = answerService.getAnswerList(answerQuery);
 
-        // 将用户进行排序 分组 , 使用比较器
-        Collections.sort(answerList , new Comparator<Answer>(){
-            @Override
-            public int compare(Answer o1, Answer o2) {
-                if (o1.getUserId() > o2.getUserId()){
-                    return 1;
-                }else if (o1.getUserId() < o2.getUserId()){
-                    return -1;
-                }else {
-                    if (o1.getQId() > o2.getQId()){
-                        return 1;
-                    }else {
-                        return -1;
+        // 将所有的用户取出
+        List<Integer> userList = new ArrayList<>();   // 单个调查 存储所有用户id 列表
+
+        Iterator<Answer> iterator_answerList_1 = allUser_answerList.iterator();
+        while (iterator_answerList_1.hasNext()) {
+            Answer next = iterator_answerList_1.next();
+            Integer userId = next.getUserId();
+            if (!userList.contains(userId)) {
+                userList.add(userId);
+            }
+        }
+
+        log.info("====================>> 统计明细查询,用户数量: " + userList.size());
+        ArrayList<InvestigationVo> investigations = new ArrayList<>();
+
+        // 遍历所有的用户, 每个用户创建一个调查对象
+        Iterator<Integer> iterator_userList = userList.iterator();
+        while (iterator_userList.hasNext()) {
+            Integer cur_userId = iterator_userList.next();
+
+            InvestigationVo investigation = investigationService.getInvestigationByKey(invId);
+
+            // 封装调查员信息
+            User userByKey = userService.getUserByKey(cur_userId);
+            if (userByKey != null) {
+                String name = userByKey.getName();
+                Integer gender = userByKey.getGender();
+                investigation.setInv_userName(name);
+                investigation.setInv_userGender(gender);
+            }
+
+            // 遍历答案表 取出当前用户的所有答题信息, 单选多选, 填空 , 静态资源题
+            // 将 问题封装进 调查 , 选项封装进问题
+
+            // 遍历所有答案信息, 找出当前用户的答案
+            Iterator<Answer> iterator_answerList_2 = allUser_answerList.iterator();
+
+            // 存储当前用户的答案信息
+            ArrayList<Answer> cur_user_answerList = new ArrayList<>();
+
+            // 将 答案表 区分不同的问题 , 取出所有非重复的问题id
+            while (iterator_answerList_2.hasNext()) {
+                Answer next = iterator_answerList_2.next();
+                if (next.getUserId().equals(cur_userId)) {
+                    // 为当前用户的答案
+                    cur_user_answerList.add(next);
+                }
+            }
+
+            // 存储当前用户在该调查上 所有的问题id 的列表
+            ArrayList<Integer> cur_user_answers_qid_list = new ArrayList<>();
+
+            // 遍历当前用户的答案, 判断有多少个问题
+            Iterator<Answer> iterator_cur_user_answers = cur_user_answerList.iterator();
+            while (iterator_cur_user_answers.hasNext()) {
+                Answer next = iterator_cur_user_answers.next();
+                if (!cur_user_answers_qid_list.contains(next.getQId())) {
+                    cur_user_answers_qid_list.add(next.getQId());
+                }
+            }
+            log.info("===================>> 用户id " + cur_userId + " 的问题数量 : " + cur_user_answers_qid_list.size());
+
+            // 遍历当前用户的所有问题 , 每个问题创建一个问题对象
+            Iterator<Integer> iterator_cur_user_answers_qid_list = cur_user_answers_qid_list.iterator();
+
+            // 存储当前用户问题列表
+            List<Question> cur_user_answers_question_list = new ArrayList<>();
+
+            while (iterator_cur_user_answers_qid_list.hasNext()) {
+                // 当前用户 当前问题 id
+                Integer cur_qId = iterator_cur_user_answers_qid_list.next();
+                // 查询该问题的对象
+                Question questionByKey = questionService.getQuestionByKey(cur_qId);
+
+                // 当前用户, 当前问题上的答案
+                Iterator<Answer> iterator_cur_user_answers_2 = cur_user_answerList.iterator();
+                while (iterator_cur_user_answers_2.hasNext()) {
+                    Answer next = iterator_cur_user_answers_2.next();
+                    if (next.getQId().equals(cur_qId)) {
+                        // 是当前用户, 当前问题
+                        questionByKey.setChoices(next.getChoices());
+                        questionByKey.setQType(next.getQType());
+                        questionByKey.setResUrl(next.getResUrl());
+                        questionByKey.setAnsDescription(next.getAnsDescription());
                     }
                 }
+                cur_user_answers_question_list.add(questionByKey);
+
             }
-        });
+            investigation.setQuestionList(cur_user_answers_question_list);
 
-        // 重新封装数据
-        List<StatisticsDetailVo> list_StatisticsDetailVo = new ArrayList<>();
-
-        StatisticsDetailVo statisticsDetailVo = null;
-        Integer last_userId = null;
-
-        Iterator<Answer> iterator = answerList.iterator();
-        while (iterator.hasNext()){
-            Answer cur_Answer = iterator.next();
-
-            Integer cur_userId = cur_Answer.getUserId();
-            if (!cur_userId.equals(last_userId)){
-                // 如果当前用户不是最后 一个用户 , 说明上一个用户信息已经录入完毕, 可以加入 列表中
-                if (statisticsDetailVo != null){
-                    list_StatisticsDetailVo.add(statisticsDetailVo);
-                }
-
-                last_userId = cur_userId;
-                // 新来个用户
-                statisticsDetailVo = new StatisticsDetailVo();
-
-                statisticsDetailVo.setId(cur_Answer.getId());
-                statisticsDetailVo.setUserId(cur_userId);
-                statisticsDetailVo.setQId(cur_Answer.getQId());
-                statisticsDetailVo.setQType(cur_Answer.getQType());
-                statisticsDetailVo.setResUrl(cur_Answer.getResUrl());
-                statisticsDetailVo.setChoices(cur_Answer.getChoices());
-                statisticsDetailVo.setAnsDescription(cur_Answer.getAnsDescription());
-                statisticsDetailVo.setMatrixId(cur_Answer.getMatrixId());
-                statisticsDetailVo.setOderId(cur_Answer.getOderId());
-                statisticsDetailVo.setInvId(cur_Answer.getInvId());
-            }
-
-            //组装答案显示字符串
-            String answer = new String();
-            if(cur_Answer.getChoices()!=null){
-                answer += cur_Answer.getChoices()+" ";
-            }
-            //获取题号
-            int QuestionNum = 1;
-            if(cur_Answer.getQId()!=0){
-                QuestionNum = cur_Answer.getQId();
-            }
-            //通过反射调用对应的set方法
-            try {
-                statisticsDetailVo.getClass().getMethod("setQuestion"+QuestionNum, String.class).invoke(statisticsDetailVo, answer);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            investigations.add(investigation);
 
         }
+        return investigations;
+    }
+    //===================================统计明细=== end====================================
 
-        if (statisticsDetailVo != null){
-            list_StatisticsDetailVo.add(statisticsDetailVo);
+    //===================================人员明细===begin====================================
+    //  下载 单个调查  人员明细
+    @RequestMapping(value = "/download_excel_list_inv_user.do")
+    public void download_excel_list_inv_user(Integer invId, HttpServletResponse response){
+        List<UserInfo_InvVo> userInfo_Inv_list = packageIng_list_inv_user(invId);
+
+        LinkedHashMap<String, String> fieldMap = new LinkedHashMap<String, String>();
+        fieldMap.put("userId", "用户ID");
+        fieldMap.put("userName", "姓名");
+        fieldMap.put("collectionNum", "采集份数");
+        fieldMap.put("proportion", "占比");
+        fieldMap.put("isGroupLeader", "组长");
+        fieldMap.put("phoneNum", "电话");
+
+        try {
+            ExcelExportUtil.listToExcel(userInfo_Inv_list,fieldMap,"标题",response);
+        } catch (ExcelException e) {
+            e.printStackTrace();
         }
-
-        return AjaxResult.successData(list_StatisticsDetailVo);
     }
 
     // 单个调查  人员明细
     @ResponseBody
     @RequestMapping(value = "/list_inv_user.do")
     public AjaxResult list_UserInfo_Investigation(Integer invId, HttpServletResponse response){
+        if (invId == null){
+            return AjaxResult.errorResult("invId 为空");
+        }
+        List<UserInfo_InvVo> userInfo_Inv_list = packageIng_list_inv_user(invId);
+        return AjaxResult.successData(userInfo_Inv_list);
+    }
+
+    public List<UserInfo_InvVo> packageIng_list_inv_user(Integer invId){
         InvOrderQuery invOrderQuery = new InvOrderQuery();
         invOrderQuery.setInvId(invId);
         List<InvOrder> invOrderList = invOrderService.getInvOrderList(invOrderQuery);
@@ -181,7 +283,6 @@ public class InvestigationController {
                         next1.setCollectionNum(next1.getCollectionNum()+1);
                     }
                 }
-
             }
         }
 
@@ -205,86 +306,52 @@ public class InvestigationController {
 
             next.setProportion(percentInstance);
         }
-
-        return AjaxResult.successData(userInfo_Inv_list);
+        return userInfo_Inv_list;
     }
+    //===================================人员明细===end====================================
 
+    //===================================所有调查列表===beign====================================
     // 查询调查收集信息列表
     @ResponseBody
     @RequestMapping(value = "/list_inv.do")
-    public AjaxResult list_inv(HttpServletResponse response){
+    public AjaxResult list_inv(Integer pageNo,HttpServletResponse response){
+        if (pageNo == null){
+            return AjaxResult.errorResult("error msg , pageNo is null");
+        }
 
-        List<InvestigationVo> investigation_list_data = get_investigation_list_data();
-        return AjaxResult.successData(investigation_list_data);
+        InvestigationQuery investigationQuery = new InvestigationQuery();
+        investigationQuery.setPageNo(pageNo);
+
+        Pagination investigationListWithPage = investigationService.getInvestigationListWithPage(investigationQuery);
+
+        return AjaxResult.successData(investigationListWithPage);
     }
 
     // 导出数据到 excel
     @RequestMapping(value = "/download_excel_list_inv.do")
     public void download_excel_list_inv(HttpServletResponse response){
 
-        List<InvestigationVo> investigation_list_data = get_investigation_list_data();
+        InvestigationQuery investigationQuery = new InvestigationQuery();
+        List<InvestigationVo> investigationList = investigationService.getInvestigationList(investigationQuery);
 
         LinkedHashMap<String, String> fieldMap = new LinkedHashMap<String, String>();
-        fieldMap.put("userId", "用户ID");
-        fieldMap.put("wanxUserId", "玩校用户ID");
-        fieldMap.put("qnId", "问卷");
-        fieldMap.put("qId", "问题id");
-        fieldMap.put("gender", "性别");
-        fieldMap.put("questionType", "问题类型");
-
-        fieldMap.put("wanxNickname", "玩校昵称");
-        fieldMap.put("schoolName", "学校名称");
-        fieldMap.put("regionName", "地区");
-        fieldMap.put("showTitle", "标题");
-        fieldMap.put("qTitle", "问题标题");
+        fieldMap.put("invId", "调查ID");
+        fieldMap.put("invName", "调查名称");
+        fieldMap.put("totalNum", "目标份数");
+        fieldMap.put("collectionNum", "采集分数");
+        fieldMap.put("collectionSchedule", "采集完成度");
+        fieldMap.put("distanceDays", "剩余时间（天）");
+        fieldMap.put("bTime", "开始日期");
+        fieldMap.put("eTime", "截至日期");
+        fieldMap.put("groupLeaderName", "组长姓名");
+        fieldMap.put("invStatus", "调查状态");
 
         try {
-            ExcelExportUtil.listToExcel(investigation_list_data,fieldMap,"标题",response);
+            ExcelExportUtil.listToExcel(investigationList,fieldMap,"标题",response);
         } catch (ExcelException e) {
             e.printStackTrace();
         }
-
     }
-
-    // 数据查询 , 返回调查列表
-    private List<InvestigationVo> get_investigation_list_data(){
-        InvestigationQuery investigationQuery = new InvestigationQuery();
-//        investigationQuery.setInvId(1);
-//        investigationQuery.setInvName("人口调查");
-//        investigationQuery.setInvNameLike(true);
-
-        List<InvestigationVo> investigationList = investigationService.getInvestigationList(investigationQuery);
-
-        Iterator<InvestigationVo> iterator = investigationList.iterator();
-        AnswerQuery answerQuery = new AnswerQuery();
-        while (iterator.hasNext()){
-            InvestigationVo next = iterator.next();
-            // 设置组长姓名
-            User user = userService.getUserByKey(next.getGroupLeaderId());
-            if (user != null){
-                next.setGroupLeaderName(user.getName());
-            }
-
-            answerQuery.setInvId(next.getInvId());
-            List<Answer> answerList = answerService.getAnswerList(answerQuery);
-
-            // 目前采集分数
-            Integer collectNum = answerList.size();
-            // 目标收集分数
-            Integer totalNum = next.getTotalNum();
-            // 计算采集完成度 百分比
-//            Float collectionSchedule = Float.valueOf(collectNum / totalNum) * 100;
-            double collectionSchedule = MathUtil.div(collectNum, totalNum, 2);
-
-            // 剩余天数
-            Long distanceDays = DateUtil.getDistanceDays(next.getETime(), new Date());
-
-            next.setCollectionNum(collectNum);
-            next.setCollectionSchedule(MathUtil.getPercentInstance(collectionSchedule,2));  // 56.7%
-            next.setDistanceDays(distanceDays);
-
-        }
-        return investigationList;
-    }
+    //===================================所有调查列表=== end ====================================
 
 }

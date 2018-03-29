@@ -1,6 +1,7 @@
 package cn.xdc.bean;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class Question implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -13,6 +14,23 @@ public class Question implements Serializable{
 	private Integer required;
 	private String comment;
 
+	private List<Option> optionList;  // 选项 单选,多选
+	private String ansDescription; // 填空题答案
+	private String resUrl; // 静态资源题
+	private String choices; // 单选多选答案
+
+	public List<Option> getOptionList() {
+		return optionList;
+	}
+	public void setOptionList(List<Option> optionList) {
+		this.optionList = optionList;
+	}
+	public String getChoices() {
+		return choices;
+	}
+	public void setChoices(String choices) {
+		this.choices = choices;
+	}
 	public Integer getQId() {
 		return qId;
 	}
@@ -69,4 +87,16 @@ public class Question implements Serializable{
 		this.comment = comment;
 	}
 
+	public String getAnsDescription() {
+		return ansDescription;
+	}
+	public void setAnsDescription(String ansDescription) {
+		this.ansDescription = ansDescription;
+	}
+	public String getResUrl() {
+		return resUrl;
+	}
+	public void setResUrl(String resUrl) {
+		this.resUrl = resUrl;
+	}
 }

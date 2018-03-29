@@ -8,7 +8,7 @@ import java.util.List;
  * @author sang
  *
  */
-public class UserQuery {
+public class UserQuery extends BaseQuery{
 
 	private Integer userId;
 	private String wxOpenId;
@@ -17,12 +17,13 @@ public class UserQuery {
 	private String passWord;
 	private Integer role;
 	private String name;
-	private Integer age;
 	private String img;
+	private Integer age;
 	private Integer gender;
 	private String evaluation;
 	private String identityId;
 	private String bankCard;
+	private String bank;
 	private String telephone;
 	private Integer isValid;
 	private String comment;
@@ -76,18 +77,18 @@ public class UserQuery {
 		this.name = name;
 	}
 
-	public Integer getAge() {
-		return age;
-	}
-	public void setAge(Integer age) {
-		this.age = age;
-	}
-
 	public String getImg() {
 		return img;
 	}
 	public void setImg(String img) {
 		this.img = img;
+	}
+
+	public Integer getAge() {
+		return age;
+	}
+	public void setAge(Integer age) {
+		this.age = age;
 	}
 
 	public Integer getGender() {
@@ -116,6 +117,13 @@ public class UserQuery {
 	}
 	public void setBankCard(String bankCard) {
 		this.bankCard = bankCard;
+	}
+
+	public String getBank() {
+		return bank;
+	}
+	public void setBank(String bank) {
+		this.bank = bank;
 	}
 
 	public String getTelephone() {
@@ -199,19 +207,19 @@ public class UserQuery {
 	public void setNameLike(boolean nameLike) {
 		this.nameLike = nameLike;
 	}
-	private boolean ageLike;
-	public boolean isAgeLike() {
-		return ageLike;
-	}
-	public void setAgeLike(boolean ageLike) {
-		this.ageLike = ageLike;
-	}
 	private boolean imgLike;
 	public boolean isImgLike() {
 		return imgLike;
 	}
 	public void setImgLike(boolean imgLike) {
 		this.imgLike = imgLike;
+	}
+	private boolean ageLike;
+	public boolean isAgeLike() {
+		return ageLike;
+	}
+	public void setAgeLike(boolean ageLike) {
+		this.ageLike = ageLike;
 	}
 	private boolean genderLike;
 	public boolean isGenderLike() {
@@ -240,6 +248,13 @@ public class UserQuery {
 	}
 	public void setBankCardLike(boolean bankCardLike) {
 		this.bankCardLike = bankCardLike;
+	}
+	private boolean bankLike;
+	public boolean isBankLike() {
+		return bankLike;
+	}
+	public void setBankLike(boolean bankLike) {
+		this.bankLike = bankLike;
 	}
 	private boolean telephoneLike;
 	public boolean isTelephoneLike() {

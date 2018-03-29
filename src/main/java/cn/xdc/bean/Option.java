@@ -4,11 +4,11 @@ import java.io.Serializable;
 
 public class Option implements Serializable{
 	private static final long serialVersionUID = 1L;
-	private Integer optionId;
-	private Integer qId;
-	private Integer viewOrder;
-	private String desc;
-	private String picUrl;
+	private Integer optionId; // 自增流水id
+	private Integer qId; // 问题 id
+	private Integer viewOrder;  // 显示顺序
+	private String desc;  //选项描述
+	private String picUrl; //图片地址
 	private String comment;
 
 	public Integer getOptionId() {

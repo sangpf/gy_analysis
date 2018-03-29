@@ -8,6 +8,8 @@ public class InvestigationVo extends Investigation {
     private String collectionSchedule;   //    采集完成度
     private Long distanceDays;  //    剩余时间（天）
     private String groupLeaderName;  // 组长姓名
+    private String inv_userName;  // 指派给调查员姓名
+    private Integer inv_userGender; // 调查员性别
 
     public Integer getCollectionNum() {
         return collectionNum;
@@ -32,5 +34,17 @@ public class InvestigationVo extends Investigation {
     }
     public void setDistanceDays(Long distanceDays) {
         this.distanceDays = distanceDays;
+    }
+    public String getInv_userName() {
+        return inv_userName;
+    }
+    public void setInv_userName(String inv_userName) {
+        this.inv_userName = inv_userName;
+    }
+    public Integer getInv_userGender() {
+        return inv_userGender;
+    }
+    public void setInv_userGender(Integer inv_userGender) {
+        this.inv_userGender = inv_userGender;
     }
 }

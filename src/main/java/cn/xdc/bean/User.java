@@ -14,19 +14,14 @@ public class User implements Serializable{
 	private String img;
 	private Integer age;
 	private Integer gender;
+	private String evaluation;
 	private String identityId;
 	private String bankCard;
-	private Integer station;
+	private String bank;
 	private String telephone;
 	private Integer isValid;
 	private String comment;
 
-	public Integer getAge() {
-		return age;
-	}
-	public void setAge(Integer age) {
-		this.age = age;
-	}
 	public Integer getUserId() {
 		return userId;
 	}
@@ -83,11 +78,25 @@ public class User implements Serializable{
 		this.img = img;
 	}
 
+	public Integer getAge() {
+		return age;
+	}
+	public void setAge(Integer age) {
+		this.age = age;
+	}
+
 	public Integer getGender() {
 		return gender;
 	}
 	public void setGender(Integer gender) {
 		this.gender = gender;
+	}
+
+	public String getEvaluation() {
+		return evaluation;
+	}
+	public void setEvaluation(String evaluation) {
+		this.evaluation = evaluation;
 	}
 
 	public String getIdentityId() {
@@ -104,11 +113,11 @@ public class User implements Serializable{
 		this.bankCard = bankCard;
 	}
 
-	public Integer getStation() {
-		return station;
+	public String getBank() {
+		return bank;
 	}
-	public void setStation(Integer station) {
-		this.station = station;
+	public void setBank(String bank) {
+		this.bank = bank;
 	}
 
 	public String getTelephone() {

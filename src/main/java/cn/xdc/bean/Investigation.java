@@ -1,7 +1,11 @@
 package cn.xdc.bean;
 
+import cn.xdc.utils.DateUtil;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Investigation implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -19,8 +23,17 @@ public class Investigation implements Serializable{
 	private String invSummary;
 	private String editor;
 	private Integer groupLeaderId;
+	private String missionStatement;
 	private String comment;
 
+	private List<Question> questionList = new ArrayList<>();  // 普通问题列表
+
+	public List<Question> getQuestionList() {
+		return questionList;
+	}
+	public void setQuestionList(List<Question> questionList) {
+		this.questionList = questionList;
+	}
 	public Integer getInvId() {
 		return invId;
 	}
@@ -49,30 +62,35 @@ public class Investigation implements Serializable{
 		this.invType = invType;
 	}
 
-	public Date getCTime() {
-		return cTime;
+	public String getCTime() {
+		return DateUtil.getStringByDateFormat(cTime);
 	}
 	public void setCTime(Date cTime) {
 		this.cTime = cTime;
 	}
 
-	public Date getSTime() {
-		return sTime;
+	public String getSTime() {
+		return DateUtil.getStringByDateFormat(sTime);
 	}
 	public void setSTime(Date sTime) {
 		this.sTime = sTime;
 	}
 
-	public Date getBTime() {
-		return bTime;
+	public String getBTime() {
+		return DateUtil.getStringByDateFormat(bTime);
 	}
 	public void setBTime(Date bTime) {
 		this.bTime = bTime;
 	}
 
-	public Date getETime() {
+	public String getETime() {
+		return DateUtil.getStringByDateFormat(eTime);
+	}
+
+	public Date getDateETime(){
 		return eTime;
 	}
+
 	public void setETime(Date eTime) {
 		this.eTime = eTime;
 	}
@@ -117,6 +135,13 @@ public class Investigation implements Serializable{
 	}
 	public void setGroupLeaderId(Integer groupLeaderId) {
 		this.groupLeaderId = groupLeaderId;
+	}
+
+	public String getMissionStatement() {
+		return missionStatement;
+	}
+	public void setMissionStatement(String missionStatement) {
+		this.missionStatement = missionStatement;
 	}
 
 	public String getComment() {

@@ -5,15 +5,15 @@ import java.io.Serializable;
 public class Answer implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private Integer id;
-	private Integer userId;
-	private Integer qId;
-	private Integer oderId;
-	private Integer matrixId;
-	private Integer invId;
-	private Integer qType;
-	private String choices;
-	private String resUrl;
-	private String ansDescription;
+	private Integer userId;  // 用户 id
+	private Integer qId; // 题号
+	private Integer oderId;  // 订单 id
+	private Integer matrixId;   // 矩阵行id
+	private Integer invId;  // 调查 id
+	private Integer qType;  //问题类型，1:单选，2:多选 3:填空 4:矩阵单选 5:录音 6:拍摄视频
+	private String choices;  //单选多选答案
+	private String resUrl;  //静态资源路径
+	private String ansDescription;   //填空题答案描述
 	private String comment;
 
 	public Integer getId() {

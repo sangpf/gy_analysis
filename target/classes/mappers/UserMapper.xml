@@ -3,25 +3,6 @@
 
 <mapper namespace="cn.xdc.dao.UserDao">
 
-	<resultMap type="User" id="userMap">
-		<result column="userId" property="userId"/>
-		<result column="wxOpenId" property="wxOpenId"/>
-		<result column="wxName" property="wxName"/>
-		<result column="account" property="account"/>
-		<result column="passWord" property="passWord"/>
-		<result column="role" property="role"/>
-		<result column="name" property="name"/>
-		<result column="age" property="age"/>
-		<result column="img" property="img"/>
-		<result column="gender" property="gender"/>
-		<result column="evaluation" property="evaluation"/>
-		<result column="identityId" property="identityId"/>
-		<result column="bankCard" property="bankCard"/>
-		<result column="telephone" property="telephone"/>
-		<result column="isValid" property="isValid"/>
-		<result column="comment" property="comment"/>
-	</resultMap>
-
 	<sql id="selector">
 		select *
 		from gy_user
@@ -81,20 +62,20 @@
 					and name like "%"#{name}"%"
 				</if>
 			</if>
-			<if test="age != null">
-				<if test="ageLike == false">
-					and age = #{age}
-				</if>
-				<if test="ageLike == true">
-					and age like "%"#{age}"%"
-				</if>
-			</if>
 			<if test="img != null">
 				<if test="imgLike == false">
 					and img = #{img}
 				</if>
 				<if test="imgLike == true">
 					and img like "%"#{img}"%"
+				</if>
+			</if>
+			<if test="age != null">
+				<if test="ageLike == false">
+					and age = #{age}
+				</if>
+				<if test="ageLike == true">
+					and age like "%"#{age}"%"
 				</if>
 			</if>
 			<if test="gender != null">
@@ -129,6 +110,14 @@
 					and bankCard like "%"#{bankCard}"%"
 				</if>
 			</if>
+			<if test="bank != null">
+				<if test="bankLike == false">
+					and bank = #{bank}
+				</if>
+				<if test="bankLike == true">
+					and bank like "%"#{bank}"%"
+				</if>
+			</if>
 			<if test="telephone != null">
 				<if test="telephoneLike == false">
 					and telephone = #{telephone}
@@ -161,14 +150,36 @@
 	</sql>
 
 	<!-- 查询集合 -->
-	<select id="getUserList" parameterType="UserQuery" resultMap="userMap">
+	<select id="getUserList" parameterType="UserQuery" resultType="UserVo">
 		<include refid="selector"/>
 		<include refid="where"/>
 		<include refid="orderBy"/>
 	</select>
 
+	<!-- 分页 -->
+	<select id="getUserListWithPage" parameterType="UserQuery" resultType="UserVo">
+		<include refid="selector" />
+		<include refid="where" />
+		<include refid="limit" />
+	</select>
+
+	<sql id="limit">
+		<if test="startRow != null">
+			limit #{startRow},#{pageSize}
+		</if>
+	</sql>
+
+	<!-- 数据总数 -->
+	<select id="getUserListCount" parameterType="UserQuery" resultType="int">
+		SELECT count(1) FROM gy_user
+		<include refid="where"/>
+	</select>
+
 	<!-- 添加 -->
 	<insert id="addUser" parameterType="User">
+		<selectKey keyProperty="userId" order="AFTER" resultType="java.lang.Integer">
+			select LAST_INSERT_ID()
+		</selectKey>
 		insert into gy_user
 		<trim prefix="(" suffix=")">
 				wxOpenId,
@@ -177,12 +188,13 @@
 				passWord,
 				role,
 				name,
-				age,
 				img,
+				age,
 				gender,
 				evaluation,
 				identityId,
 				bankCard,
+				bank,
 				telephone,
 				isValid,
 				comment
@@ -195,12 +207,13 @@
 				#{passWord},
 				#{role},
 				#{name},
-				#{age},
 				#{img},
+				#{age},
 				#{gender},
 				#{evaluation},
 				#{identityId},
 				#{bankCard},
+				#{bank},
 				#{telephone},
 				#{isValid},
 				#{comment}
@@ -248,11 +261,11 @@
 			<if test="name != null">
 				name = #{name},
 			</if>
-			<if test="age != null">
-				age = #{age},
-			</if>
 			<if test="img != null">
 				img = #{img},
+			</if>
+			<if test="age != null">
+				age = #{age},
 			</if>
 			<if test="gender != null">
 				gender = #{gender},
@@ -265,6 +278,9 @@
 			</if>
 			<if test="bankCard != null">
 				bankCard = #{bankCard},
+			</if>
+			<if test="bank != null">
+				bank = #{bank},
 			</if>
 			<if test="telephone != null">
 				telephone = #{telephone},
@@ -282,7 +298,7 @@
 	</update>
 
 	<!-- 通过ID查询一个品牌对象 -->
-	<select id="getUserByKey" parameterType="Integer" resultMap="userMap">
+	<select id="getUserByKey" parameterType="Integer" resultType="User">
 		select *
 		from gy_user
 		<where>

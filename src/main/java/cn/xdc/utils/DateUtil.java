@@ -12,6 +12,13 @@ public class DateUtil {
 		System.out.println(currentDateByFormat);
 	}
 
+	public static String getStringByDateFormat(Date date){
+		if (date == null){
+			return "";
+		}
+		return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date);
+	}
+
 	// 获取两个时间相差天数
 	public static Long getDistanceDays(Date one, Date two){
 		long days=0;
