@@ -24,6 +24,7 @@ import org.springframework.web.context.request.WebRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -60,14 +61,17 @@ public class InvestigationController {
     }
 
     //===================================统计明细=== begin====================================
-    // 下载统计明细查询 excel
+    // 下载一份调查资料
     @RequestMapping(value = "/download_list_statistics_detail.do")
     public void download_list_statistics_detail(Integer invId,HttpServletRequest request,
                                                       HttpServletResponse response){
         if (invId != null){
             try {
+                // 将答题明细生成excel到服务器
+                download_list_statistics_detail_excel_local(invId,"/../data/res/static/gy/"+invId,request);
+                // 导出压缩包
                 DownZipUtils.downLoadZip(response,request,invId);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }else {
@@ -75,19 +79,54 @@ public class InvestigationController {
         }
     }
 
-    @RequestMapping(value = "/download_list_statistics_detail_excel.do")
-    public void download_list_statistics_detail_excel(Integer invId,HttpServletResponse response){
-
+    // 下载统计明细查询 excel  导出到本地
+    @RequestMapping(value = "/download_list_statistics_detail_excel_local.do")
+    private void download_list_statistics_detail_excel_local(Integer invId,String targetPath,
+                                                            HttpServletRequest request) throws Exception{
         if (invId != null){
-            List<InvestigationVo> investigations = package_list_statistics_detail(invId);
+            Map<String, Object> map = package_list_statistics_detail_update(invId);
 
-            LinkedHashMap<String, String> fieldMap = new LinkedHashMap<String, String>();
-            fieldMap.put("inv_userName", "调查员姓名");
-            fieldMap.put("inv_userGender", "调查员性别");
-            fieldMap.put("collectionSchedule", "采集完成度");
+            List<StatisticsDetailVo> statisticsDetailVos = (List<StatisticsDetailVo>)map.get("statisticsDetailVos");
+            LinkedHashMap<String, String> fieldMap = (LinkedHashMap<String, String>)map.get("fieldMap");
+
+            // 创建相对路径
+            String realPath = request.getSession().getServletContext().getRealPath(targetPath);
+            if (realPath == null) {
+                realPath = request.getSession().getClass().getClassLoader().getResource(targetPath).getPath();
+            }
+
+            System.out.println("============================>> 下载统计明细查询 excel  导出到本地 ");
+            System.out.println("============================>> 下载统计明细查询 excel  导出到本地 , 输出路径为 : "+realPath);
+
+            File file = new File(realPath + "/invid_" + invId + ".xls");
+            if (!file.exists()){
+                file.getParentFile().mkdirs();
+            }
+
+            FileOutputStream out = new FileOutputStream(file);
 
             try {
-                ExcelExportUtil.listToExcel(investigations,fieldMap,"invid_"+invId,response);
+                ExcelExportUtil.listToExcel(statisticsDetailVos,fieldMap,"invid_"+invId, out);
+            } catch (ExcelException e) {
+                e.printStackTrace();
+            } finally {
+                out.close();
+            }
+        }
+    }
+
+    // 下载统计明细查询 excel  导出到浏览器
+    @RequestMapping(value = "/download_list_statistics_detail_excel.do")
+    public void download_list_statistics_detail_excel(Integer invId,HttpServletResponse response) throws Exception{
+
+        if (invId != null){
+            Map<String, Object> map = package_list_statistics_detail_update(invId);
+
+            List<StatisticsDetailVo> statisticsDetailVos = (List<StatisticsDetailVo>)map.get("statisticsDetailVos");
+            LinkedHashMap<String, String> fieldMap = (LinkedHashMap<String, String>)map.get("fieldMap");
+
+            try {
+                ExcelExportUtil.listToExcel(statisticsDetailVos,fieldMap,"invid_"+invId,response);
             } catch (ExcelException e) {
                 e.printStackTrace();
             }
@@ -106,7 +145,89 @@ public class InvestigationController {
         return AjaxResult.successData(investigations);
     }
 
-    // 统计明细查询
+    // 统计明细查询  升级 02
+    private Map<String, Object> package_list_statistics_detail_update(Integer invId) throws Exception{
+        List<InvestigationVo> investigations = package_list_statistics_detail(invId);
+        Map<String, Object> dataMap = new HashMap<>();
+
+        LinkedHashMap<String, String> fieldMap = new LinkedHashMap<String, String>();
+        fieldMap.put("inv_userName", "调查员姓名");
+        fieldMap.put("inv_userGender", "调查员性别");
+        fieldMap.put("collectionSchedule", "采集完成度");
+
+        // 封装能够直接使用 导出 excel的 list列表
+        List<StatisticsDetailVo> statisticsDetailVos = new ArrayList<>();
+
+        Iterator<InvestigationVo> iterator = investigations.iterator();
+        while (iterator.hasNext()){
+            // 每个用户的答题信息
+            StatisticsDetailVo statisticsDetailVo = new StatisticsDetailVo();
+
+            InvestigationVo next = iterator.next();
+
+            // 设置 调查员等问卷相关信息
+            statisticsDetailVo.setInv_userName(next.getInv_userName());
+            statisticsDetailVo.setInv_userGender(next.getInv_userGender());
+            statisticsDetailVo.setCollectionSchedule(next.getCollectionSchedule());
+
+            List<Question> questionList = next.getQuestionList();
+
+            Iterator<Question> iterator1 = questionList.iterator();
+            while (iterator1.hasNext()){
+                Question next1 = iterator1.next();
+
+                //获取题号
+                int qNum = 1;
+                if (next1.getQNum() != 0){
+                    qNum = next1.getQNum();
+                }
+
+                Class<? extends StatisticsDetailVo> aClass = statisticsDetailVo.getClass();
+
+                // 封装问题信息
+                aClass.getMethod("setqId"+qNum, Integer.class).invoke(statisticsDetailVo,next1.getQId());
+                aClass.getMethod("setqTitle"+qNum, String.class).invoke(statisticsDetailVo,next1.getQTitle());
+                aClass.getMethod("setChoices"+qNum, String.class).invoke(statisticsDetailVo,next1.getChoices());
+                aClass.getMethod("setResUrl"+qNum, String.class).invoke(statisticsDetailVo,next1.getResUrl());
+                aClass.getMethod("setAnsDescription"+qNum, String.class).invoke(statisticsDetailVo,next1.getAnsDescription());
+
+                Integer qType = next1.getQType();
+                switch (qType){
+                    case 1 :
+                        aClass.getMethod("setqTypeName"+qNum,String.class).invoke(statisticsDetailVo,"单选");
+                    case 2 :
+                        aClass.getMethod("setqTypeName"+qNum,String.class).invoke(statisticsDetailVo,"多选");
+                    case 3 :
+                        aClass.getMethod("setqTypeName"+qNum,String.class).invoke(statisticsDetailVo,"填空");
+                    case 4 :
+                        aClass.getMethod("setqTypeName"+qNum,String.class).invoke(statisticsDetailVo,"矩阵单选");
+                    case 5 :
+                        aClass.getMethod("setqTypeName"+qNum,String.class).invoke(statisticsDetailVo,"录音");
+                    case 6 :
+                        aClass.getMethod("setqTypeName"+qNum,String.class).invoke(statisticsDetailVo,"拍摄视频");
+                    case 7 :
+                        aClass.getMethod("setqTypeName"+qNum,String.class).invoke(statisticsDetailVo,"图片题");
+                }
+
+                // 封装 excel表头信息
+                fieldMap.put("qId"+qNum, "第"+qNum+"题");
+                fieldMap.put("qTypeName"+qNum, "第"+qNum+"题类型");
+                fieldMap.put("qTitle"+qNum, "第"+qNum+"题标题");
+                fieldMap.put("choices"+qNum, "第"+qNum+"题选项");
+                fieldMap.put("resUrl"+qNum, "第"+qNum+"题资源路径");
+                fieldMap.put("ansDescription"+qNum, "第"+qNum+"题填空题答案");
+
+            }
+            statisticsDetailVos.add(statisticsDetailVo);
+        }
+
+        dataMap.put("statisticsDetailVos",statisticsDetailVos);
+        dataMap.put("fieldMap",fieldMap);
+
+        return dataMap;
+    }
+
+    // 统计明细查询  基础 01
     private List<InvestigationVo> package_list_statistics_detail(Integer invId) {
         AnswerQuery answerQuery = new AnswerQuery();
         answerQuery.setInvId(invId);

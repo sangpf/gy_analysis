@@ -13,8 +13,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import jxl.Workbook;
 import jxl.write.Label;
+import jxl.write.WritableCell;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
+import org.apache.poi.hssf.usermodel.*;
 
 public class ExcelExportUtil {
 
@@ -48,9 +50,9 @@ public class ExcelExportUtil {
 		}
 
 		// 创建工作簿并发送到OutputStream指定的地方
-		WritableWorkbook wwb;
+		HSSFWorkbook wb;
 		try {
-			wwb = Workbook.createWorkbook(out);
+			wb = new HSSFWorkbook();
 
 			// 因为2003的Excel一个工作表最多可以有65536条记录，除去列头剩下65535条
 			// 所以如果记录太多，需要放到多个工作表中，其实就是个分页的过程
@@ -62,13 +64,13 @@ public class ExcelExportUtil {
 				// 如果只有一个工作表的情况
 				if (1 == sheetNum) {
 					 //创建Excel工作表 指定名称和位置  
-					WritableSheet sheet = wwb.createSheet(sheetName, i);
+					HSSFSheet sheet = wb.createSheet(sheetName);
 					//往工作表中添加数据
 					fillSheet(sheet, list, fieldMap, 0, list.size() - 1);
 
 					// 有多个工作表的情况
 				} else {
-					WritableSheet sheet = wwb.createSheet(sheetName + (i + 1), i);
+					HSSFSheet sheet = wb.createSheet(sheetName + (i + 1));
 
 					// 获取开始索引和结束索引
 					int firstIndex = i * sheetSize;
@@ -79,8 +81,8 @@ public class ExcelExportUtil {
 				}
 			}
 
-			wwb.write();
-			wwb.close();
+			wb.write(out);
+			wb.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -112,7 +114,6 @@ public class ExcelExportUtil {
 			OutputStream out) throws ExcelException {
 
 		listToExcel(list, fieldMap, sheetName, 65535, out);
-
 	}
 
 	/**
@@ -259,9 +260,9 @@ public class ExcelExportUtil {
 			Object o) throws Exception {
 
 		Object value = null;
-
 		// 将fieldNameSequence进行拆分
 		String[] attributes = fieldNameSequence.split("\\.");
+
 		if (attributes.length == 1) {
 			value = getFieldValueByName(fieldNameSequence, o);
 		} else {
@@ -269,6 +270,7 @@ public class ExcelExportUtil {
 			Object fieldObj = getFieldValueByName(attributes[0], o);
 			String subFieldNameSequence = fieldNameSequence
 					.substring(fieldNameSequence.indexOf(".") + 1);
+
 			value = getFieldValueByNameSequence(subFieldNameSequence, fieldObj);
 		}
 		return value;
@@ -363,7 +365,7 @@ public class ExcelExportUtil {
 	 * @param lastIndex
 	 *            结束索引
 	 */
-	private static <T> void fillSheet(WritableSheet sheet, List<T> list,
+	private static <T> void fillSheet(HSSFSheet sheet, List<T> list,
 			LinkedHashMap<String, String> fieldMap, int firstIndex,
 			int lastIndex) throws Exception {
 
@@ -379,28 +381,48 @@ public class ExcelExportUtil {
 			count++;
 		}
 		// 填充表头
+		HSSFRow row = sheet.createRow(0);
 		for (int i = 0; i < cnFields.length; i++) {
-			Label label = new Label(i, 0, cnFields[i]);
-			sheet.addCell(label);
+//			Label label = new Label(i, 0, cnFields[i]);
+//			sheet.addCell(label);
+
+			HSSFCell cell = row.createCell(i);
+			cell.setCellValue(cnFields[i]);
 		}
 
 		// 填充内容
 		int rowNo = 1;
 		for (int index = firstIndex; index <= lastIndex; index++) {
+			HSSFRow row1 = sheet.createRow(rowNo);
+
 			// 获取单个对象
 			T item = list.get(index);
+
 			for (int i = 0; i < enFields.length; i++) {
 				Object objValue = getFieldValueByNameSequence(enFields[i], item);
 				String fieldValue = objValue == null ? "" : objValue.toString();
-				Label label = new Label(i, rowNo, fieldValue);
-				sheet.addCell(label);
+
+				HSSFCell cell = row1.createCell(i);
+				cell.setCellValue(fieldValue);
+
+				if (StrUtils.isNotEmpty(fieldValue) && enFields[i].contains("resUrl")){
+					HSSFHyperlink link = new HSSFHyperlink(HSSFHyperlink.LINK_URL);
+					link.setAddress("http://www.baidu.com/img/bd_logo1.png");
+
+					cell.setHyperlink(link);
+				}
+
+//				Label label = new Label(i, rowNo, fieldValue);
+//				sheet.addCell(label);
 			}
 
 			rowNo++;
 		}
 
+		sheet.setDefaultColumnWidth(15);
+
 		// 设置自动列宽
-		setColumnAutoSize(sheet, 6);
+//		setColumnAutoSize(sheet, 6);
 	}
 
 }

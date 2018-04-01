@@ -2,10 +2,7 @@ package cn.xdc.utils.file.zip;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.zip.ZipOutputStream;
 
 public class DownZipUtils {

@@ -15,6 +15,7 @@ public class Question implements Serializable{
 	private String comment;
 
 	private List<Option> optionList;  // 选项 单选,多选
+
 	private String ansDescription; // 填空题答案
 	private String resUrl; // 静态资源题
 	private String choices; // 单选多选答案

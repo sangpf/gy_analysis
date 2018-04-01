@@ -16,7 +16,7 @@ public class DateUtil {
 		if (date == null){
 			return "";
 		}
-		return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date);
+		return new SimpleDateFormat("yyyy-MM-dd").format(date);
 	}
 
 	// 获取两个时间相差天数
