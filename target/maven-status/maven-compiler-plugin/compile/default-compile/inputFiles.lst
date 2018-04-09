@@ -8,6 +8,7 @@ D:\JAVA\IDEA_space\gy_analysis\src\main\java\cn\xdc\common\page\Paginable.java
 D:\JAVA\IDEA_space\gy_analysis\src\main\java\cn\xdc\utils\file\ImageDownload.java
 D:\JAVA\IDEA_space\gy_analysis\src\main\java\cn\xdc\common\page\Pagination.java
 D:\JAVA\IDEA_space\gy_analysis\src\main\java\cn\xdc\dao\InvestigationDao.java
+D:\JAVA\IDEA_space\gy_analysis\src\main\java\cn\xdc\redis\RedisSessionConfig.java
 D:\JAVA\IDEA_space\gy_analysis\src\main\java\cn\xdc\service\InvestigationServiceImpl.java
 D:\JAVA\IDEA_space\gy_analysis\src\main\java\cn\xdc\bean\query\InvestigationQuery.java
 D:\JAVA\IDEA_space\gy_analysis\src\main\java\cn\xdc\service\AnswerService.java
