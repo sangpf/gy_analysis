@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.xdc.dao.OrderDao">
+
+	<sql id="selector">
+		select *
+		from gy_inv_order
+	</sql>
+
+	<!-- 查询条件 -->
+	<sql id="where">
+		<where>
+			<if test="orderId != null">
+				and orderId = #{orderId}
+			</if>
+			<if test="invId != null">
+				<if test="invIdLike == false">
+					and invId = #{invId}
+				</if>
+				<if test="invIdLike == true">
+					and invId like "%"#{invId}"%"
+				</if>
+			</if>
+			<if test="sTime != null">
+				<if test="sTimeLike == false">
+					and sTime = #{sTime}
+				</if>
+				<if test="sTimeLike == true">
+					and sTime like "%"#{sTime}"%"
+				</if>
+			</if>
+			<if test="userId != null">
+				<if test="userIdLike == false">
+					and userId = #{userId}
+				</if>
+				<if test="userIdLike == true">
+					and userId like "%"#{userId}"%"
+				</if>
+			</if>
+			<if test="answerBTime != null">
+				<if test="answerBTimeLike == false">
+					and answerBTime = #{answerBTime}
+				</if>
+				<if test="answerBTimeLike == true">
+					and answerBTime like "%"#{answerBTime}"%"
+				</if>
+			</if>
+			<if test="answerETime != null">
+				<if test="answerETimeLike == false">
+					and answerETime = #{answerETime}
+				</if>
+				<if test="answerETimeLike == true">
+					and answerETime like "%"#{answerETime}"%"
+				</if>
+			</if>
+			<if test="orderStatus != null">
+				<if test="orderStatusLike == false">
+					and orderStatus = #{orderStatus}
+				</if>
+				<if test="orderStatusLike == true">
+					and orderStatus like "%"#{orderStatus}"%"
+				</if>
+			</if>
+			<if test="comment != null">
+				<if test="commentLike == false">
+					and comment = #{comment}
+				</if>
+				<if test="commentLike == true">
+					and comment like "%"#{comment}"%"
+				</if>
+			</if>
+		</where>
+	</sql>
+
+	<!-- Order by -->
+	<sql id="orderBy">
+		ORDER BY sTime DESC
+	</sql>
+
+	<!-- 查询集合 -->
+	<select id="getOrderList" parameterType="OrderQuery" resultType="OrderVo">
+		<include refid="selector"/>
+		<include refid="where"/>
+		<include refid="orderBy"/>
+	</select>
+
+	<!-- 分页 -->
+	<select id="getOrderListWithPage" parameterType="OrderQuery" resultType="OrderVo">
+		<include refid="selector" />
+		<include refid="where" />
+		<include refid="orderBy"/>
+		<include refid="limit" />
+	</select>
+
+	<sql id="limit">
+		<if test="startRow != null">
+			limit #{startRow},#{pageSize}
+		</if>
+	</sql>
+
+	<!-- 数据总数 -->
+	<select id="getOrderListCount" parameterType="OrderQuery" resultType="int">
+		SELECT count(1) FROM gy_inv_order
+		<include refid="where"/>
+	</select>
+
+	<!-- 添加 -->
+	<insert id="addOrder" parameterType="Order">
+		<selectKey keyProperty="orderId" order="AFTER" resultType="java.lang.Integer">
+			select LAST_INSERT_ID()
+		</selectKey>
+		insert into gy_inv_order
+		<trim prefix="(" suffix=")">
+				invId,
+				sTime,
+				userId,
+				answerBTime,
+				answerETime,
+				orderStatus,
+				comment
+		</trim>
+		values
+		<trim prefix="(" suffix=")">
+				#{invId},
+				#{sTime},
+				#{userId},
+				#{answerBTime},
+				#{answerETime},
+				#{orderStatus},
+				#{comment}
+		</trim>
+	</insert>
+
+	<!-- 删除 通过主键 -->
+	<delete id="deleteOrderByKey" parameterType="Integer">
+		delete from gy_inv_order
+		<where>
+			orderId = #{orderId}
+		</where>
+	</delete>
+
+	<!-- 批量删除 -->
+	<delete id="deleteOrderByKeys" parameterType="Integer">
+		delete from gy_inv_order
+		<where>
+			orderId in
+			<foreach collection="array" item="orderId" open="(" close=")" separator="," >
+				#{orderId}
+			</foreach>
+		</where>
+	</delete>
+
+	<!-- 修改 -->
+	<update id="updateOrderByKey" parameterType="Order">
+		update gy_inv_order
+		<set>
+			<if test="invId != null">
+				invId = #{invId},
+			</if>
+			<if test="sTime != null">
+				sTime = #{sTime},
+			</if>
+			<if test="userId != null">
+				userId = #{userId},
+			</if>
+			<if test="answerBTime != null">
+				answerBTime = #{answerBTime},
+			</if>
+			<if test="answerETime != null">
+				answerETime = #{answerETime},
+			</if>
+			<if test="orderStatus != null">
+				orderStatus = #{orderStatus},
+			</if>
+			<if test="comment != null">
+				comment = #{comment},
+			</if>
+		</set>
+		<where>
+			orderId = #{orderId}
+		</where>
+	</update>
+
+	<!-- 通过ID查询一个品牌对象 -->
+	<select id="getOrderByKey" parameterType="Integer" resultType="Order">
+		select *
+		from gy_inv_order
+		<where>
+			orderId = #{orderId}
+		</where>
+	</select>
+
+</mapper>
+

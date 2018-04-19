@@ -2,9 +2,10 @@ package cn.xdc.controller;
 
 import cn.xdc.bean.*;
 import cn.xdc.bean.query.AnswerQuery;
-import cn.xdc.bean.query.InvOrderQuery;
 import cn.xdc.bean.query.InvestigationQuery;
+import cn.xdc.bean.query.OrderQuery;
 import cn.xdc.bean.vo.InvestigationVo;
+import cn.xdc.bean.vo.OrderVo;
 import cn.xdc.bean.vo.StatisticsDetailVo;
 import cn.xdc.bean.vo.UserInfo_InvVo;
 import cn.xdc.common.page.Pagination;
@@ -46,7 +47,7 @@ public class InvestigationController {
     @Autowired
     private AnswerService answerService;
     @Autowired
-    private InvOrderService invOrderService;
+    private OrderService orderService;
     @Autowired
     private UserService userService;
     @Autowired
@@ -365,9 +366,11 @@ public class InvestigationController {
     }
 
     public List<UserInfo_InvVo> packageIng_list_inv_user(Integer invId){
-        InvOrderQuery invOrderQuery = new InvOrderQuery();
-        invOrderQuery.setInvId(invId);
-        List<InvOrder> invOrderList = invOrderService.getInvOrderList(invOrderQuery);
+
+        OrderQuery orderQuery = new OrderQuery();
+        orderQuery.setInvId(invId);
+
+        List<OrderVo> orderList = orderService.getOrderList(orderQuery);
 
         // 封装页面显示数据 列表
         List<UserInfo_InvVo> userInfo_Inv_list = new ArrayList<>();
@@ -375,9 +378,9 @@ public class InvestigationController {
         List<Integer> userIdList = new ArrayList<>();
 
         // 从订单表中获取所有非重复用户id
-        Iterator<InvOrder> iterator = invOrderList.iterator();
+        Iterator<OrderVo> iterator = orderList.iterator();
         while (iterator.hasNext()){
-            InvOrder next = iterator.next();
+            OrderVo next = iterator.next();
             Integer userId = next.getUserId();
 
             // 查询用户信息

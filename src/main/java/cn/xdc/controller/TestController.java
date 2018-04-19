@@ -21,21 +21,4 @@ public class TestController {
         return AjaxResult.successResult();
     }
 
-    // ----------------------- 测试 session 共享 ----------------------
-    @RequestMapping("/test_session_add.do")
-    public void test_session_add(HttpServletRequest request){
-        HttpSession session = request.getSession();
-
-        long currentTimeMillis = System.currentTimeMillis();
-        session.setAttribute("wangfei", "王菲在唱歌"+currentTimeMillis);
-    }
-
-    @RequestMapping("/test_session_get.do")
-    public void test_session_get(HttpServletRequest request){
-        HttpSession session = request.getSession();
-
-        Object userName = session.getAttribute("wangfei");
-        System.out.println("--------------------- "+userName);
-    }
-
 }

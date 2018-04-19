@@ -5,10 +5,12 @@ import cn.xdc.bean.Investigation;
 import cn.xdc.bean.User;
 import cn.xdc.bean.query.AnswerQuery;
 import cn.xdc.bean.query.InvestigationQuery;
+import cn.xdc.bean.query.OrderQuery;
 import cn.xdc.bean.vo.InvestigationVo;
 import cn.xdc.common.page.Pagination;
 import cn.xdc.dao.AnswerDao;
 import cn.xdc.dao.InvestigationDao;
+import cn.xdc.dao.OrderDao;
 import cn.xdc.dao.UserDao;
 import cn.xdc.utils.DateUtil;
 import cn.xdc.utils.MathUtil;
@@ -24,13 +26,14 @@ import java.util.List;
 @Service
 @Transactional
 public class InvestigationServiceImpl implements InvestigationService{
-
     @Resource
     private InvestigationDao investigationDao;
     @Resource
     private UserDao userDao;
     @Resource
     private AnswerDao answerDao;
+    @Resource
+    private OrderDao orderDao;
 
     public void addInvestigation(Investigation investigation) {
         investigationDao.addInvestigation(investigation);
@@ -73,7 +76,8 @@ public class InvestigationServiceImpl implements InvestigationService{
     private void packagingInvestigationVo(List<InvestigationVo> investigations){
 
         Iterator<InvestigationVo> iterator = investigations.iterator();
-        AnswerQuery answerQuery = new AnswerQuery();
+        OrderQuery orderQuery = new OrderQuery();
+
         while (iterator.hasNext()){
             InvestigationVo next = iterator.next();
             // 设置组长姓名
@@ -82,11 +86,11 @@ public class InvestigationServiceImpl implements InvestigationService{
                 next.setGroupLeaderName(user.getName());
             }
 
-            answerQuery.setInvId(next.getInvId());
-            List<Answer> answerList = answerDao.getAnswerList(answerQuery);
-
+            // 计算采集分数
+            orderQuery.setInvId(next.getInvId());
             // 目前采集分数
-            Integer collectNum = answerList.size();
+            int collectNum = orderDao.getOrderListCount(orderQuery);
+
             // 目标收集分数
             Integer totalNum = next.getTotalNum();
             // 计算采集完成度 百分比

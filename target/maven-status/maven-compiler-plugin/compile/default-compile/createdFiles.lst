@@ -13,7 +13,6 @@ cn\xdc\service\InvestigationService.class
 cn\xdc\bean\vo\InvestigationVo.class
 cn\xdc\utils\file\ImageDownload.class
 cn\xdc\service\AnswerServiceImpl.class
-cn\xdc\bean\query\InvOrderQuery.class
 cn\xdc\utils\file\zip\DownZipUtils.class
 cn\xdc\utils\file\DownLoadThread.class
 cn\xdc\utils\ExcelException.class
@@ -21,9 +20,7 @@ cn\xdc\bean\vo\UserInfo_InvVo.class
 cn\xdc\utils\file\localZip\ZipUtils.class
 cn\xdc\utils\DateUtil.class
 cn\xdc\service\UserServiceImpl.class
-cn\xdc\dao\InvOrderDao.class
 cn\xdc\dao\AnswerDao.class
-cn\xdc\service\InvOrderServiceImpl.class
 cn\xdc\bean\User.class
 cn\xdc\service\AnswerService.class
 cn\xdc\controller\TestController.class
@@ -36,14 +33,11 @@ cn\xdc\bean\Answer.class
 cn\xdc\utils\StrUtils.class
 cn\xdc\service\UserService.class
 cn\xdc\bean\query\QuestionQuery$FieldOrder.class
-cn\xdc\bean\query\InvOrderQuery$FieldOrder.class
 cn\xdc\bean\query\UserQuery$FieldOrder.class
 cn\xdc\dao\QuestionDao.class
 cn\xdc\bean\query\InvestigationQuery.class
-cn\xdc\service\InvOrderService.class
 cn\xdc\bean\Investigation.class
 cn\xdc\utils\file\localZip\FileBean.class
-cn\xdc\bean\InvOrder.class
 cn\xdc\bean\query\AnswerQuery$FieldOrder.class
 cn\xdc\utils\ExcelExportUtil.class
 cn\xdc\bean\query\QuestionQuery.class
