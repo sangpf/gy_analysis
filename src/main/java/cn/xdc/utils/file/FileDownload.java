@@ -1,8 +1,5 @@
 package cn.xdc.utils.file;
 
-import javax.imageio.stream.FileImageInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -17,15 +14,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+/**
+ * 单个文件的下载
+ */
 public class FileDownload {
 
     public static void main(String[] args) {
 
-//        FileDownload.downloadByNIO2("http://www.baidu.com/img/bd_logo1.png",
-//                "/home/panda/picture", "baidu_logo.png");
-
 //        download("http://www.baidu.com/img/bd_logo1.png","E:/pic", "baidu_logo.png");
-        download("http://101.200.166.221:8082/data/res/static/img/","E:/pic", "aaa");
+//        download("http://101.200.166.221:8080/data/res/static/img/","E:/pic", "aaa");
+
+//        downloadByNIO2("http://www.baidu.com/img/bd_logo1.png", "E:/pic", "baidu_logo.png");
+        downloadByNIO2("http://101.200.166.221:8080/data/res/static/img/", "E:/pic", "baidu_logo.png");
 
         System.out.println("done...");
     }
@@ -42,11 +42,15 @@ public class FileDownload {
         InputStream inputStream = null;
         try {
             byte[] buff = new byte[8192];
+            // 从url中读取字节输入流
             inputStream = new URL(url).openStream();
+            // 创建目标存储目录
             File file = new File(saveDir, fileName);
             file.getParentFile().mkdirs();
+            // 创建字节缓冲输出流
             bos = new BufferedOutputStream(new FileOutputStream(file));
             int count = 0;
+            // 完成流的对接
             while ( (count = inputStream.read(buff)) != -1) {
                 bos.write(buff, 0, count);
             }
@@ -70,7 +74,6 @@ public class FileDownload {
                 }
             }
         }
-
     }
 
     /**
@@ -127,7 +130,6 @@ public class FileDownload {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
 }

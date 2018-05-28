@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="Chapter1" />
+        <module name="gy_analysis" />
+        <module name="gy_inv" />
+        <module name="gy_manage" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Chapter1" target="1.8" />
+      <module name="gy_analysis" target="1.7" />
+      <module name="gy_inv" target="1.7" />
+      <module name="gy_manage" target="1.7" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

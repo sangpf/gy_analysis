@@ -11,8 +11,10 @@ import cn.xdc.bean.vo.UserInfo_InvVo;
 import cn.xdc.common.page.Pagination;
 import cn.xdc.service.*;
 import cn.xdc.utils.*;
+import cn.xdc.utils.ImageUtils.ImgChangeSize;
 import cn.xdc.utils.file.localZip.ZipUtils;
 import cn.xdc.utils.file.zip.DownZipUtils;
+import org.apache.poi.ss.util.ImageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -65,13 +67,15 @@ public class InvestigationController {
     // 下载一份调查资料
     @RequestMapping(value = "/download_list_statistics_detail.do")
     public void download_list_statistics_detail(Integer invId,HttpServletRequest request,
-                                                      HttpServletResponse response){
+                                                              HttpServletResponse response){
         if (invId != null){
             try {
-                // 将答题明细生成excel到服务器
-                download_list_statistics_detail_excel_local(invId,"/../data/res/static/gy/"+invId,request);
+                // 下载前, 修改当前调查所有图片的像素
+                ImgChangeSize.getDirFile("/../data/res/static/gy/"+invId+"/img/", request);
+                // 下载前 ,将答题明细生成excel到服务器
+                download_list_statistics_detail_excel_local(invId,"/../data/res/static/gy/"+invId, request);
                 // 导出压缩包
-                DownZipUtils.downLoadZip(response,request,invId);
+                DownZipUtils.downLoad_invRes_zip(response, request, invId);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -82,7 +86,7 @@ public class InvestigationController {
 
     // 下载统计明细查询 excel  导出到本地
     @RequestMapping(value = "/download_list_statistics_detail_excel_local.do")
-    private void download_list_statistics_detail_excel_local(Integer invId,String targetPath,
+    private void download_list_statistics_detail_excel_local(Integer invId, String targetPath,
                                                             HttpServletRequest request) throws Exception{
         if (invId != null){
             Map<String, Object> map = package_list_statistics_detail_update(invId);

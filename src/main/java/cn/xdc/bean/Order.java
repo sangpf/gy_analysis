@@ -14,8 +14,15 @@ public class Order implements Serializable{
 	private Date answerBTime;
 	private Date answerETime;
 	private Integer orderStatus;
+	private String location;
 	private String comment;
 
+	public String getLocation() {
+		return location;
+	}
+	public void setLocation(String location) {
+		this.location = location;
+	}
 	public Integer getOrderId() {
 		return orderId;
 	}

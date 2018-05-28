@@ -9,6 +9,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * 多线程下载
+ */
 public class ImageDownload {
 
     public final static String sate = "http://www.baidu.com/img/bd_logo1.png";//本题所下载的文件是一个百度图标

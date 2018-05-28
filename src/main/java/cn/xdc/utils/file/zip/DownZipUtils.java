@@ -7,7 +7,11 @@ import java.util.zip.ZipOutputStream;
 
 public class DownZipUtils {
 
-    public static void downLoadZip(HttpServletResponse response, HttpServletRequest request,Integer invId) throws IOException{
+    /**
+     * 根据调查 invId 查询当前调查所有的资料 , 打包下载
+     *  所以, 这并不是一个通用的接口
+     */
+    public static void downLoad_invRes_zip(HttpServletResponse response, HttpServletRequest request,Integer invId) throws IOException{
         String zipName = invId+".zip";
 
         response.setContentType("APPLICATION/OCTET-STREAM");

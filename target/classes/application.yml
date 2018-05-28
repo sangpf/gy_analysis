@@ -10,10 +10,10 @@ spring:
      driver-class-name: com.mysql.jdbc.Driver
 
 # redis 配置
-  redis:
-    host: 47.94.108.128
-    password: sang123456
-    port: 6379
+#  redis:
+#    host: 47.94.108.128
+#    password: sang123456
+#    port: 6379
 
 mybatis:
    # mybatis.config= classpath:mybatis-config.xml
