@@ -69,9 +69,16 @@ public class InvestigationController {
     public void download_list_statistics_detail(Integer invId,HttpServletRequest request,
                                                               HttpServletResponse response){
         if (invId != null){
+            String pixels_str = request.getParameter("pixels");
+            Integer pixels = StrUtils.changeToInt(pixels_str);
+            if (pixels == null){
+                // 如果未设置像素, 默认值
+                pixels = 800;
+            }
+
             try {
                 // 下载前, 修改当前调查所有图片的像素
-                ImgChangeSize.getDirFile("/../data/res/static/gy/"+invId+"/img/", request);
+                ImgChangeSize.getDirFile("/../data/res/static/gy/"+invId+"/img/", 800, request);
                 // 下载前 ,将答题明细生成excel到服务器
                 download_list_statistics_detail_excel_local(invId,"/../data/res/static/gy/"+invId, request);
                 // 导出压缩包

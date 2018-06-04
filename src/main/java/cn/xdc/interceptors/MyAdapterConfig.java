@@ -15,9 +15,10 @@ public class MyAdapterConfig extends WebMvcConfigurerAdapter {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 判断用户是否登录的拦截器
-//        registry.addInterceptor(userLoginHandlerInterceptor)
-//                .addPathPatterns("/investigation/**")
-//                .addPathPatterns("/file/**");
+        registry.addInterceptor(userLoginHandlerInterceptor)
+                .addPathPatterns("/investigation/**")
+                .addPathPatterns("/interviewLog/**")
+                .addPathPatterns("/file/**");
     }
 
 }

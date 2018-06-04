@@ -52,8 +52,8 @@ public class ImgChangeSize {
         }
     }
 
-    // 获取文件目录下所有文件 并修改像素尺寸
-    public static void getDirFile(String dirPath, HttpServletRequest request) throws Exception{
+    // 获取文件目录下所有文件 并修改像素尺寸  int pixels 像素值
+    public static void getDirFile(String dirPath, int pixels, HttpServletRequest request) throws Exception{
 
         // 创建相对路径
         String realPath = request.getSession().getServletContext().getRealPath(dirPath);
@@ -88,7 +88,7 @@ public class ImgChangeSize {
 
             FileOutputStream out = new FileOutputStream(newFile);
 
-            resizeImage(in, out, 800 , suffix);
+            resizeImage(in, out, pixels , suffix);
         }
 
     }
